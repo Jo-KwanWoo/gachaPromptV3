@@ -17,11 +17,11 @@ export class DeviceService {
     const { hardwareId, tenantId, ipAddress, systemInfo } = dto;
     const existingDevice = await this.dynamoDbService.getDevice(hardwareId, tenantId);
     if (existingDevice) {
-      throw new ConflictException('ÀÌ¹Ì µî·ÏµÈ ÀåÄ¡ÀÔ´Ï´Ù');
+      throw new ConflictException('ï¿½Ì¹ï¿½ ï¿½ï¿½Ïµï¿½ ï¿½ï¿½Ä¡ï¿½Ô´Ï´ï¿½');
     }
     const device: DeviceEntity = {
-      PK: TENANT#,
-      SK: DEVICE#,
+      PK: `TENANT#${tenantId}`,
+      SK: `DEVICE#${hardwareId}`,
       hardwareId,
       tenantId,
       ipAddress,
@@ -38,7 +38,7 @@ export class DeviceService {
   async getDeviceStatus(hardwareId: string): Promise<DeviceEntity> {
     const device = await this.dynamoDbService.getDeviceByHardwareId(hardwareId);
     if (!device) {
-      throw new NotFoundException('µî·Ï ¿äÃ»À» Ã£À» ¼ö ¾ø½À´Ï´Ù.');
+      throw new NotFoundException('ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.');
     }
     return device;
   }
@@ -46,9 +46,9 @@ export class DeviceService {
   async approveDevice(hardwareId: string): Promise<{ sqsQueueUrl: string }> {
     const device = await this.dynamoDbService.getDeviceByHardwareId(hardwareId);
     if (!device) {
-      throw new NotFoundException('½ÂÀÎÇÒ ÀåÄ¡ ¿äÃ»À» Ã£À» ¼ö ¾ø½À´Ï´Ù.');
+      throw new NotFoundException('ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½Ã»ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.');
     }
-    const queueName = device-queue--;
+    const queueName = `device-queue-${uuidv4()}`;
     const sqsQueueUrl = await this.sqsService.createQueue(queueName);
     device.status = DeviceStatus.APPROVED;
     device.sqsQueueUrl = sqsQueueUrl;
@@ -60,7 +60,7 @@ export class DeviceService {
   async rejectDevice(hardwareId: string, reason: string): Promise<void> {
     const device = await this.dynamoDbService.getDeviceByHardwareId(hardwareId);
     if (!device) {
-      throw new NotFoundException('°ÅºÎÇÒ ÀåÄ¡ ¿äÃ»À» Ã£À» ¼ö ¾ø½À´Ï´Ù.');
+      throw new NotFoundException('ï¿½Åºï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½Ã»ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.');
     }
     device.status = DeviceStatus.REJECTED;
     device.updatedAt = new Date().toISOString();

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsObject, IsString, ValidateNested, IsDefined } from 'class-validator';
+import { IsNotEmpty, IsObject, IsString, ValidateNested, IsDefined, IsIP } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -29,6 +29,7 @@ export class DeviceRegistrationDto {
   @ApiProperty({ example: '192.168.0.1' })
   @IsString()
   @IsNotEmpty()
+  @IsIP()
   ipAddress: string;
   @ApiProperty({
     type: SystemInfoDto,

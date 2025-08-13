@@ -13,29 +13,29 @@ export class DeviceController {
   constructor(private readonly deviceService: DeviceService) {}
 
   @Post('register')
-  @ApiOperation({ summary: 'ÀåÄ¡ µî·Ï ¿äÃ»', description: '¹«ÀÎ ÀÚÆÇ±â°¡ Áß¾Ó ¼­¹ö¿¡ µî·ÏÀ» ¿äÃ»ÇÕ´Ï´Ù.' })
-  @ApiResponse({ status: 201, description: '¼º°ø', type: CustomApiResponse })
-  @ApiResponse({ status: 400, description: 'À¯È¿¼º °Ë»ç ½ÇÆĞ', type: CustomApiResponse })
-  @ApiResponse({ status: 409, description: 'Áßº¹ µî·Ï', type: CustomApiResponse })
+  @ApiOperation({ summary: 'ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»', description: 'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç±â°¡ ï¿½ß¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½Õ´Ï´ï¿½.' })
+  @ApiResponse({ status: 201, description: 'ï¿½ï¿½ï¿½ï¿½', type: CustomApiResponse })
+  @ApiResponse({ status: 400, description: 'ï¿½ï¿½È¿ï¿½ï¿½ ï¿½Ë»ï¿½ ï¿½ï¿½ï¿½ï¿½', type: CustomApiResponse })
+  @ApiResponse({ status: 409, description: 'ï¿½ßºï¿½ ï¿½ï¿½ï¿½', type: CustomApiResponse })
   @ApiBody({ type: DeviceRegistrationDto })
   async registerDevice(@Body() deviceRegistrationDto: DeviceRegistrationDto): Promise<ApiResponseData> {
     const data = await this.deviceService.registerDevice(deviceRegistrationDto);
     return {
       status: 'success',
-      message: 'µî·Ï ¿äÃ»ÀÌ ÀúÀåµÇ¾ú½À´Ï´Ù',
+      message: 'ë“±ë¡ ìš”ì²­ì´ ì €ì¥ë˜ì—ˆìŠµë‹ˆë‹¤',
       data,
     };
   }
 
   @Get('status/:hardwareId')
-  @ApiOperation({ summary: 'ÀåÄ¡ »óÅÂ Á¶È¸', description: 'ÀåÄ¡°¡ ½ÂÀÎ »óÅÂ¸¦ È®ÀÎÇÕ´Ï´Ù. 5ºĞ °£°İÀ¸·Î Æú¸µÇÕ´Ï´Ù.' })
-  @ApiResponse({ status: 200, description: '¼º°ø', type: CustomApiResponse })
+  @ApiOperation({ summary: 'ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸', description: 'ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¸ï¿½ È®ï¿½ï¿½ï¿½Õ´Ï´ï¿½. 5ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.' })
+  @ApiResponse({ status: 200, description: 'ï¿½ï¿½ï¿½ï¿½', type: CustomApiResponse })
   async getDeviceStatus(@Param('hardwareId') hardwareId: string): Promise<ApiResponseData> {
     const device = await this.deviceService.getDeviceStatus(hardwareId);
     if (device.status === DeviceStatus.APPROVED) {
       return {
         status: 'success',
-        message: '½ÂÀÎ ¿Ï·á',
+        message: 'ìŠ¹ì¸ ì™„ë£Œ',
         data: {
           deviceId: device.SK.split('#')[1],
           sqsQueueUrl: device.sqsQueueUrl,
@@ -44,7 +44,7 @@ export class DeviceController {
     } else {
       return {
         status: 'success',
-        message: '½ÂÀÎ ´ë±â Áß',
+        message: 'ìŠ¹ì¸ ëŒ€ê¸° ì¤‘',
         data: { status: device.status },
       };
     }
@@ -53,13 +53,13 @@ export class DeviceController {
   @Put(':hardwareId/approve')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('admin-auth')
-  @ApiOperation({ summary: '°ü¸®ÀÚ ÀåÄ¡ ½ÂÀÎ', description: '°ü¸®ÀÚ°¡ ÀåÄ¡ µî·Ï ¿äÃ»À» ½ÂÀÎÇÕ´Ï´Ù.' })
-  @ApiResponse({ status: 200, description: '¼º°ø', type: CustomApiResponse })
+  @ApiOperation({ summary: 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½', description: 'ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.' })
+  @ApiResponse({ status: 200, description: 'ï¿½ï¿½ï¿½ï¿½', type: CustomApiResponse })
   async approveDevice(@Param('hardwareId') hardwareId: string): Promise<ApiResponseData> {
     const data = await this.deviceService.approveDevice(hardwareId);
     return {
       status: 'success',
-      message: 'ÀåÄ¡°¡ ½ÂÀÎµÇ¾ú½À´Ï´Ù',
+      message: 'ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ÎµÇ¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½',
       data,
     };
   }
@@ -67,14 +67,14 @@ export class DeviceController {
   @Put(':hardwareId/reject')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('admin-auth')
-  @ApiOperation({ summary: '°ü¸®ÀÚ ÀåÄ¡ °ÅºÎ', description: '°ü¸®ÀÚ°¡ ÀåÄ¡ µî·Ï ¿äÃ»À» °ÅºÎÇÕ´Ï´Ù.' })
+  @ApiOperation({ summary: 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½Åºï¿½', description: 'ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½Åºï¿½ï¿½Õ´Ï´ï¿½.' })
   @ApiBody({ type: AdminRejectDto })
-  @ApiResponse({ status: 200, description: '¼º°ø', type: CustomApiResponse })
+  @ApiResponse({ status: 200, description: 'ï¿½ï¿½ï¿½ï¿½', type: CustomApiResponse })
   async rejectDevice(@Param('hardwareId') hardwareId: string, @Body() body: AdminRejectDto): Promise<ApiResponseData> {
     await this.deviceService.rejectDevice(hardwareId, body.reason);
     return {
       status: 'success',
-      message: 'ÀåÄ¡°¡ °ÅºÎµÇ¾ú½À´Ï´Ù',
+      message: 'ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ÅºÎµÇ¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½',
       data: { status: DeviceStatus.REJECTED, reason: body.reason },
     };
   }
