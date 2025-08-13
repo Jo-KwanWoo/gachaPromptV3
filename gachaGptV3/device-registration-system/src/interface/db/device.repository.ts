@@ -8,7 +8,7 @@ import { GetCommand, PutCommand, QueryCommand, UpdateCommand } from '@aws-sdk/li
 export class DeviceRepository {
   private table: string;
   constructor(private ddb: DynamoService, cfg: ConfigService) {
-    this.table = cfg.get<string>('dynamo.table');
+    this.table = cfg.get<string>('dynamo.table') || 'DeviceRegistry';
   }
 
   async getByTenantAndHardware(tenantId: string, hardwareId: string): Promise<DeviceItem | undefined> {

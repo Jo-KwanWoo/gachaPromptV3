@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPT V3 서버 상태 체크</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .server-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+
+        .server-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .server-input input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .status {
+            margin: 30px 0;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .status.checking {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        .status.online {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .status.offline {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .server-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .info-value {
+            color: #6c757d;
+            font-family: 'Courier New', monospace;
+        }
+
+        .actions {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 GPT V3 서버 상태 체크</h1>
+        
+        <div class="server-input">
+            <input type="text" id="serverUrl" value="http://localhost:3001" placeholder="서버 URL 입력">
+            <button class="btn" onclick="checkServer()">상태 확인</button>
+        </div>
+
+        <div id="status" class="status" style="display: none;"></div>
+        
+        <div id="serverInfo" class="server-info" style="display: none;"></div>
+
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="openSwaggerDocs()">📚 API 문서</button>
+            <button class="btn btn-success" onclick="openTestRunner()" id="testRunnerBtn" style="display: none;">
+                🧪 테스트 실행
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let serverStatus = null;
+
+        async function checkServer() {
+            const serverUrl = document.getElementById('serverUrl').value.trim();
+            const statusDiv = document.getElementById('status');
+            const serverInfoDiv = document.getElementById('serverInfo');
+            const testRunnerBtn = document.getElementById('testRunnerBtn');
+
+            if (!serverUrl) {
+                alert('서버 URL을 입력해주세요.');
+                return;
+            }
+
+            // 상태 표시 시작
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status checking';
+            statusDiv.innerHTML = '<span class="spinner"></span>서버 상태 확인 중...';
+            serverInfoDiv.style.display = 'none';
+            testRunnerBtn.style.display = 'none';
+
+            try {
+                // 기본 연결 테스트
+                const healthResponse = await fetch(`${serverUrl}/api/docs`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+
+                if (healthResponse.ok) {
+                    // 서버 온라인
+                    statusDiv.className = 'status online';
+                    statusDiv.innerHTML = '✅ 서버가 정상적으로 실행 중입니다!';
+                    
+                    // 서버 정보 표시
+                    serverInfoDiv.style.display = 'block';
+                    serverInfoDiv.innerHTML = `
+                        <div class="info-item">
+                            <span class="info-label">서버 URL:</span>
+                            <span class="info-value">${serverUrl}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">API 문서:</span>
+                            <span class="info-value">${serverUrl}/api/docs</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">상태:</span>
+                            <span class="info-value">온라인</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">응답 시간:</span>
+                            <span class="info-value">${Date.now() - startTime}ms</span>
+                        </div>
+                    `;
+
+                    testRunnerBtn.style.display = 'inline-block';
+                    serverStatus = 'online';
+
+                } else {
+                    throw new Error(`HTTP ${healthResponse.status}`);
+                }
+
+            } catch (error) {
+                // 서버 오프라인 또는 오류
+                statusDiv.className = 'status offline';
+                statusDiv.innerHTML = '❌ 서버에 연결할 수 없습니다.';
+                
+                serverInfoDiv.style.display = 'block';
+                serverInfoDiv.innerHTML = `
+                    <div class="info-item">
+                        <span class="info-label">서버 URL:</span>
+                        <span class="info-value">${serverUrl}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">오류:</span>
+                        <span class="info-value">${error.message}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">상태:</span>
+                        <span class="info-value">오프라인</span>
+                    </div>
+                `;
+
+                serverStatus = 'offline';
+            }
+        }
+
+        function openSwaggerDocs() {
+            const serverUrl = document.getElementById('serverUrl').value.trim();
+            if (serverUrl) {
+                window.open(`${serverUrl}/api/docs`, '_blank');
+            } else {
+                alert('서버 URL을 입력해주세요.');
+            }
+        }
+
+        function openTestRunner() {
+            if (serverStatus === 'online') {
+                window.open('./test-runner.html', '_blank');
+            } else {
+                alert('서버가 온라인 상태일 때만 테스트를 실행할 수 있습니다.');
+            }
+        }
+
+        // 페이지 로드 시 자동으로 서버 상태 확인
+        let startTime;
+        window.addEventListener('load', () => {
+            startTime = Date.now();
+            setTimeout(checkServer, 500);
+        });
+
+        // Enter 키로 상태 확인
+        document.getElementById('serverUrl').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                startTime = Date.now();
+                checkServer();
+            }
+        });
+    </script>
+</body>
+</html>
