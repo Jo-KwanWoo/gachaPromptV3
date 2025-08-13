@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPT V3 Device Registration API 테스트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .server-config {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .server-config label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .server-config input {
+            padding: 8px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .server-config input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .test-case {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .test-case:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .test-case.success {
+            border-color: #28a745;
+        }
+
+        .test-case.failure {
+            border-color: #dc3545;
+        }
+
+        .test-case.running {
+            border-color: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+        }
+
+        .test-header {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .test-title {
+            font-weight: 600;
+            color: #495057;
+            font-size: 16px;
+        }
+
+        .test-id {
+            background: #6c757d;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .test-body {
+            padding: 20px;
+        }
+
+        .test-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #495057;
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 5px 8px;
+            border-radius: 4px;
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .method-post { background: #28a745; }
+        .method-get { background: #17a2b8; }
+        .method-put { background: #ffc107; color: #212529; }
+        .method-delete { background: #dc3545; }
+
+        .request-body, .response-body {
+            margin-top: 15px;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .status-pending { background: #6c757d; }
+        .status-running { background: #ffc107; animation: blink 1s infinite; }
+        .status-success { background: #28a745; }
+        .status-failure { background: #dc3545; }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .test-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .results-summary {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            display: none;
+        }
+
+        .results-summary.show {
+            display: block;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+        }
+
+        .stat-card.total { background: #6c757d; }
+        .stat-card.success { background: #28a745; }
+        .stat-card.failure { background: #dc3545; }
+        .stat-card.pending { background: #17a2b8; }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 GPT V3 API 테스트 러너</h1>
+            <p>Device Registration System 테스트 도구</p>
+        </div>
+
+        <div class="controls">
+            <div class="server-config">
+                <label for="serverUrl">서버 URL:</label>
+                <input type="text" id="serverUrl" value="http://localhost:3001" placeholder="http://localhost:3001">
+            </div>
+            <button class="btn btn-primary" onclick="runAllTests()">
+                🧪 모든 테스트 실행
+            </button>
+            <button class="btn btn-success" onclick="runSuccessTests()">
+                ✅ 성공 케이스만
+            </button>
+            <button class="btn btn-danger" onclick="runFailureTests()">
+                ❌ 실패 케이스만
+            </button>
+        </div>
+
+        <div class="results-summary" id="resultsSummary">
+            <div class="summary-stats" id="summaryStats"></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="test-grid" id="testGrid">
+            <!-- 테스트 케이스들이 여기에 동적으로 생성됩니다 -->
+        </div>
+    </div>
+
+    <script>
+        let testCases = [];
+        let testResults = {};
+
+        // 테스트 케이스 로드
+        async function loadTestCases() {
+            try {
+                const response = await fetch('../test-cases.json');
+                const data = await response.json();
+                testCases = data.testCases;
+                renderTestCases();
+            } catch (error) {
+                console.error('테스트 케이스 로드 실패:', error);
+                alert('test-cases.json 파일을 로드할 수 없습니다.');
+            }
+        }
+
+        // 테스트 케이스 렌더링
+        function renderTestCases() {
+            const testGrid = document.getElementById('testGrid');
+            testGrid.innerHTML = '';
+
+            testCases.forEach(testCase => {
+                const testElement = createTestCaseElement(testCase);
+                testGrid.appendChild(testElement);
+            });
+        }
+
+        // 테스트 케이스 엘리먼트 생성
+        function createTestCaseElement(testCase) {
+            const div = document.createElement('div');
+            div.className = 'test-case';
+            div.id = `test-${testCase.id}`;
+
+            const requestBody = testCase.body ? JSON.stringify(testCase.body, null, 2) : '없음';
+            const expectedResponse = JSON.stringify(testCase.expectedResponse, null, 2);
+
+            div.innerHTML = `
+                <div class="test-header">
+                    <div class="test-title">
+                        <span class="status-indicator status-pending" id="status-${testCase.id}"></span>
+                        ${testCase.name}
+                    </div>
+                    <div class="test-id">${testCase.id}</div>
+                </div>
+                <div class="test-body">
+                    <div class="test-info">
+                        <div class="info-item">
+                            <div class="info-label">메서드</div>
+                            <div class="info-value">
+                                <span class="method-badge method-${testCase.method.toLowerCase()}">${testCase.method}</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">타입</div>
+                            <div class="info-value">${testCase.type === 'success' ? '✅ 성공' : '❌ 실패'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">엔드포인트</div>
+                            <div class="info-value">${testCase.endpoints.gachaGptV3.replace('http://localhost:3000', '')}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">예상 상태</div>
+                            <div class="info-value">${testCase.expectedStatus.join(', ')}</div>
+                        </div>
+                    </div>
+                    
+                    ${testCase.body && typeof testCase.body === 'object' ? `
+                    <div class="request-body">
+                        <div class="info-label">요청 본문</div>
+                        <div class="code-block">${requestBody}</div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="response-body">
+                        <div class="info-label">예상 응답</div>
+                        <div class="code-block">${expectedResponse}</div>
+                    </div>
+
+                    <div class="response-body" id="actual-response-${testCase.id}" style="display: none;">
+                        <div class="info-label">실제 응답</div>
+                        <div class="code-block" id="actual-response-content-${testCase.id}"></div>
+                    </div>
+
+                    <div class="test-actions">
+                        <button class="btn btn-primary btn-sm" onclick="runSingleTest('${testCase.id}')">
+                            🧪 테스트 실행
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            return div;
+        }
+
+        // 단일 테스트 실행
+        async function runSingleTest(testId) {
+            const testCase = testCases.find(tc => tc.id === testId);
+            if (!testCase) return;
+
+            const serverUrl = document.getElementById('serverUrl').value;
+            const statusIndicator = document.getElementById(`status-${testId}`);
+            const testElement = document.getElementById(`test-${testId}`);
+            const actualResponseDiv = document.getElementById(`actual-response-${testId}`);
+            const actualResponseContent = document.getElementById(`actual-response-content-${testId}`);
+
+            // 테스트 시작
+            statusIndicator.className = 'status-indicator status-running';
+            testElement.className = 'test-case running';
+
+            try {
+                // GPT V3 엔드포인트 URL 구성
+                const endpoint = testCase.endpoints.gachaGptV3.replace('http://localhost:3000', serverUrl);
+                
+                const requestOptions = {
+                    method: testCase.method,
+                    headers: {
+                        ...testCase.headers
+                    }
+                };
+
+                // POST/PUT 요청인 경우 body 추가
+                if (testCase.method !== 'GET' && testCase.body) {
+                    if (typeof testCase.body === 'string') {
+                        requestOptions.body = testCase.body;
+                    } else {
+                        requestOptions.body = JSON.stringify(testCase.body);
+                    }
+                }
+
+                console.log(`테스트 ${testId} 실행:`, endpoint, requestOptions);
+
+                const response = await fetch(endpoint, requestOptions);
+                const responseData = await response.text();
+                
+                let parsedResponse;
+                try {
+                    parsedResponse = JSON.parse(responseData);
+                } catch {
+                    parsedResponse = responseData;
+                }
+
+                // 결과 표시
+                actualResponseDiv.style.display = 'block';
+                actualResponseContent.textContent = JSON.stringify({
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: parsedResponse
+                }, null, 2);
+
+                // 테스트 결과 판정
+                const isSuccess = testCase.expectedStatus.includes(response.status);
+                testResults[testId] = {
+                    success: isSuccess,
+                    status: response.status,
+                    response: parsedResponse
+                };
+
+                // UI 업데이트
+                if (isSuccess) {
+                    statusIndicator.className = 'status-indicator status-success';
+                    testElement.className = 'test-case success';
+                } else {
+                    statusIndicator.className = 'status-indicator status-failure';
+                    testElement.className = 'test-case failure';
+                }
+
+            } catch (error) {
+                console.error(`테스트 ${testId} 실행 중 오류:`, error);
+                
+                actualResponseDiv.style.display = 'block';
+                actualResponseContent.textContent = `오류: ${error.message}`;
+                
+                testResults[testId] = {
+                    success: false,
+                    error: error.message
+                };
+
+                statusIndicator.className = 'status-indicator status-failure';
+                testElement.className = 'test-case failure';
+            }
+
+            updateSummary();
+        }
+
+        // 모든 테스트 실행
+        async function runAllTests() {
+            testResults = {};
+            document.getElementById('resultsSummary').classList.add('show');
+            
+            for (const testCase of testCases) {
+                await runSingleTest(testCase.id);
+                // 테스트 간 간격
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        // 성공 케이스만 실행
+        async function runSuccessTests() {
+            testResults = {};
+            document.getElementById('resultsSummary').classList.add('show');
+            
+            const successTests = testCases.filter(tc => tc.type === 'success');
+            for (const testCase of successTests) {
+                await runSingleTest(testCase.id);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        // 실패 케이스만 실행
+        async function runFailureTests() {
+            testResults = {};
+            document.getElementById('resultsSummary').classList.add('show');
+            
+            const failureTests = testCases.filter(tc => tc.type === 'failure');
+            for (const testCase of failureTests) {
+                await runSingleTest(testCase.id);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        // 결과 요약 업데이트
+        function updateSummary() {
+            const total = Object.keys(testResults).length;
+            const success = Object.values(testResults).filter(r => r.success).length;
+            const failure = total - success;
+            const pending = testCases.length - total;
+
+            const summaryStats = document.getElementById('summaryStats');
+            summaryStats.innerHTML = `
+                <div class="stat-card total">
+                    <div class="stat-number">${testCases.length}</div>
+                    <div class="stat-label">전체</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-number">${success}</div>
+                    <div class="stat-label">성공</div>
+                </div>
+                <div class="stat-card failure">
+                    <div class="stat-number">${failure}</div>
+                    <div class="stat-label">실패</div>
+                </div>
+                <div class="stat-card pending">
+                    <div class="stat-number">${pending}</div>
+                    <div class="stat-label">대기</div>
+                </div>
+            `;
+
+            // 진행률 업데이트
+            const progress = (total / testCases.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+
+        // 페이지 로드 시 테스트 케이스 로드
+        document.addEventListener('DOMContentLoaded', loadTestCases);
+    </script>
+</body>
+</html>
