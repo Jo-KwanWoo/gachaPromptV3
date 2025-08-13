@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 테스트 러너</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .controls {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .endpoint-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select, button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5a6fd8;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .test-case {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .test-case:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .test-header {
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .test-title {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .test-id {
+            font-size: 12px;
+            color: #666;
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .test-body {
+            padding: 15px;
+        }
+
+        .test-info {
+            margin-bottom: 10px;
+        }
+
+        .method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .method.GET { background: #28a745; }
+        .method.POST { background: #007bff; }
+        .method.PUT { background: #ffc107; color: #333; }
+        .method.DELETE { background: #dc3545; }
+
+        .endpoint {
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            word-break: break-all;
+        }
+
+        .test-result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .result-pending {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .result-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result-failure {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .response-details {
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .progress {
+            margin: 10px 0;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+        }
+
+        .summary {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .summary-number {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .run-single {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .run-single:hover {
+            background: #218838;
+        }
+
+        .run-single:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>API 테스트 러너</h1>
+            <p>장치 관리 API 테스트 케이스 실행 도구</p>
+        </div>
+
+        <div class="controls">
+            <div class="endpoint-selector">
+                <label for="endpoint-select">엔드포인트:</label>
+                <select id="endpoint-select">
+                    <option value="gachaClaudeV3">Gacha Claude V3</option>
+                    <option value="gachaGeminiV3">Gacha Gemini V3</option>
+                    <option value="gachaGptV3">Gacha GPT V3</option>
+                </select>
+            </div>
+            <button id="run-all-btn">모든 테스트 실행</button>
+            <button id="clear-results-btn">결과 초기화</button>
+        </div>
+
+        <div class="progress" id="progress-container" style="display: none;">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <div class="test-grid" id="test-grid">
+            <!-- 테스트 케이스들이 여기에 동적으로 생성됩니다 -->
+        </div>
+
+        <div class="summary" id="summary">
+            <div class="summary-item">
+                <div class="summary-number" id="total-tests">0</div>
+                <div class="summary-label">총 테스트</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-number" id="passed-tests" style="color: #28a745;">0</div>
+                <div class="summary-label">성공</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-number" id="failed-tests" style="color: #dc3545;">0</div>
+                <div class="summary-label">실패</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-number" id="error-tests" style="color: #ffc107;">0</div>
+                <div class="summary-label">오류</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 테스트 케이스 데이터
+        const testCases = {
+            "testCases": [
+                {
+                    "id": "TC001",
+                    "name": "장치 등록 - 성공 케이스",
+                    "type": "success",
+                    "method": "POST",
+                    "endpoints": {
+                        "gachaClaudeV3": "http://localhost:3000/api/devices/register",
+                        "gachaGeminiV3": "http://localhost:3000/devices/register",
+                        "gachaGptV3": "http://localhost:3000/api/devices/register"
+                    },
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "hardwareId": "HW001",
+                        "tenantId": "TENANT001",
+                        "ipAddress": "192.168.1.100",
+                        "systemInfo": {
+                            "os": "linux",
+                            "arch": "arm64",
+                            "mac": "aa:bb:cc:dd:ee:ff"
+                        }
+                    },
+                    "expectedStatus": [200, 201],
+                    "expectedResponse": {
+                        "status": "success",
+                        "message": "등록 요청이 저장되었습니다"
+                    }
+                },
+                {
+                    "id": "TC002",
+                    "name": "장치 등록 - 필수 필드 누락 (hardwareId)",
+                    "type": "failure",
+                    "method": "POST",
+                    "endpoints": {
+                        "gachaClaudeV3": "http://localhost:3000/api/devices/register",
+                        "gachaGeminiV3": "http://localhost:3000/devices/register",
+                        "gachaGptV3": "http://localhost:3000/api/devices/register"
+                    },
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "tenantId": "TENANT001",
+                        "ipAddress": "192.168.1.100",
+                        "systemInfo": {
+                            "os": "linux",
+                            "arch": "arm64",
+                            "mac": "aa:bb:cc:dd:ee:ff"
+                        }
+                    },
+                    "expectedStatus": [400],
+                    "expectedResponse": {
+                        "statusCode": 400
+                    }
+                },
+                {
+                    "id": "TC003",
+                    "name": "장치 등록 - 잘못된 IP 주소",
+                    "type": "failure",
+                    "method": "POST",
+                    "endpoints": {
+                        "gachaClaudeV3": "http://localhost:3000/api/devices/register",
+                        "gachaGeminiV3": "http://localhost:3000/devices/register",
+                        "gachaGptV3": "http://localhost:3000/api/devices/register"
+                    },
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "hardwareId": "HW002",
+                        "tenantId": "TENANT001",
+                        "ipAddress": "invalid-ip",
+                        "systemInfo": {
+                            "os": "linux",
+                            "arch": "arm64",
+                            "mac": "aa:bb:cc:dd:ee:ff"
+                        }
+                    },
+                    "expectedStatus": [400],
+                    "expectedResponse": {
+                        "statusCode": 400
+                    }
+                },
+                {
+                    "id": "TC004",
+                    "name": "장치 등록 - 중복 등록",
+                    "type": "failure",
+                    "method": "POST",
+                    "endpoints": {
+                        "gachaClaudeV3": "http://localhost:3000/api/devices/register",
+                        "gachaGeminiV3": "http://localhost:3000/devices/register",
+                        "gachaGptV3": "http://localhost:3000/api/devices/register"
+                    },
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "hardwareId": "HW001",
+                        "tenantId": "TENANT001",
+                        "ipAddress": "192.168.1.101",
+                        "systemInfo": {
+                            "os": "linux",
+                            "arch": "arm64",
+                            "mac": "bb:cc:dd:ee:ff:aa"
+                        }
+                    },
+                    "expectedStatus": [409],
+                    "expectedResponse": {
+                        "statusCode": 409
+                    }
+                },
+                {
+                    "id": "TC005",
+                    "name": "장치 상태 조회 - 성공 케이스 (pending)",
+                    "type": "success",
+                    "method": "GET",
+                    "endpoints": {
+                        "gachaClaudeV3": "http://localhost:3000/api/devices/status/HW001?tenantId=TENANT001",
+                        "gachaGeminiV3": "http://localhost:3000/devices/status/HW001",
+                        "gachaGptV3": "http://localhost:3000/api/devices/status/HW001"
+                    },
+                    "headers": {
+                        "x-tenant-id": "TENANT001"
+                    },
+                    "expectedStatus": [200],
+                    "expectedResponse": {
+                        "status": "success",
+                        "message": "승인 대기 중"
+                    }
+                },
+                {
+                    "id": "TC006",
+                    "name": "장치 상태 조회 - 존재하지 않는 장치",
+                    "type": "failure",
+                    "method": "GET",
+                    "endpoints": {
+                        "gachaClaudeV3": "http://localhost:3000/api/devices/status/NONEXISTENT?tenantId=TENANT001",
+                        "gachaGeminiV3": "http://localhost:3000/devices/status/NONEXISTENT",
+                        "gachaGptV3": "http://localhost:3000/api/devices/status/NONEXISTENT"
+                    },
+                    "headers": {
+                        "x-tenant-id": "TENANT001"
+                    },
+                    "expectedStatus": [404],
+                    "expectedResponse": {
+                        "statusCode": 404
+                    }
+                },
+                {
+                    "id": "TC007",
+                    "name": "장치 승인 - 인증 없이 접근",
+                    "type": "failure",
+                    "method": "PUT",
+                    "endpoints": {
+                        "gachaClaudeV3": "http://localhost:3000/api/devices/device123/approve",
+                        "gachaGeminiV3": "http://localhost:3000/devices/HW001/approve",
+                        "gachaGptV3": "http://localhost:3000/api/devices/device123/approve"
+                    },
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {},
+                    "expectedStatus": [401],
+                    "expectedResponse": {
+                        "statusCode": 401
+                    }
+                },
+                {
+                    "id": "TC008",
+                    "name": "장치 승인 - 잘못된 JWT 토큰",
+                    "type": "failure",
+                    "method": "PUT",
+                    "endpoints": {
+                        "gachaClaudeV3": "http://localhost:3000/api/devices/device123/approve",
+                        "gachaGeminiV3": "http://localhost:3000/devices/HW001/approve",
+                        "gachaGptV3": "http://localhost:3000/api/devices/device123/approve"
+                    },
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer invalid-token"
+                    },
+                    "body": {},
+                    "expectedStatus": [401],
+                    "expectedResponse": {
+                        "statusCode": 401
+                    }
+                },
+                {
+                    "id": "TC009",
+                    "name": "장치 거부 - 인증 없이 접근",
+                    "type": "failure",
+                    "method": "PUT",
+                    "endpoints": {
+                        "gachaClaudeV3": "http://localhost:3000/api/devices/device123/reject",
+                        "gachaGeminiV3": "http://localhost:3000/devices/HW001/reject",
+                        "gachaGptV3": "http://localhost:3000/api/devices/device123/reject"
+                    },
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "reason": "테스트 거부"
+                    },
+                    "expectedStatus": [401],
+                    "expectedResponse": {
+                        "statusCode": 401
+                    }
+                },
+                {
+                    "id": "TC010",
+                    "name": "장치 등록 - systemInfo 필드 누락",
+                    "type": "failure",
+                    "method": "POST",
+                    "endpoints": {
+                        "gachaClaudeV3": "http://localhost:3000/api/devices/register",
+                        "gachaGeminiV3": "http://localhost:3000/devices/register",
+                        "gachaGptV3": "http://localhost:3000/api/devices/register"
+                    },
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "hardwareId": "HW003",
+                        "tenantId": "TENANT001",
+                        "ipAddress": "192.168.1.102"
+                    },
+                    "expectedStatus": [400],
+                    "expectedResponse": {
+                        "statusCode": 400
+                    }
+                },
+                {
+                    "id": "TC011",
+                    "name": "장치 등록 - 빈 문자열 hardwareId",
+                    "type": "failure",
+                    "method": "POST",
+                    "endpoints": {
+                        "gachaClaudeV3": "http://localhost:3000/api/devices/register",
+                        "gachaGeminiV3": "http://localhost:3000/devices/register",
+                        "gachaGptV3": "http://localhost:3000/api/devices/register"
+                    },
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": {
+                        "hardwareId": "",
+                        "tenantId": "TENANT001",
+                        "ipAddress": "192.168.1.103",
+                        "systemInfo": {
+                            "os": "linux",
+                            "arch": "arm64",
+                            "mac": "cc:dd:ee:ff:aa:bb"
+                        }
+                    },
+                    "expectedStatus": [400],
+                    "expectedResponse": {
+                        "statusCode": 400
+                    }
+                },
+                {
+                    "id": "TC012",
+                    "name": "장치 등록 - 잘못된 JSON 형식",
+                    "type": "failure",
+                    "method": "POST",
+                    "endpoints": {
+                        "gachaClaudeV3": "http://localhost:3000/api/devices/register",
+                        "gachaGeminiV3": "http://localhost:3000/devices/register",
+                        "gachaGptV3": "http://localhost:3000/api/devices/register"
+                    },
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": "invalid-json",
+                    "expectedStatus": [400],
+                    "expectedResponse": {
+                        "statusCode": 400
+                    }
+                }
+            ]
+        };
+
+        let currentEndpoint = 'gachaClaudeV3';
+        let testResults = {};
+        let isRunning = false;
+
+        // DOM 요소들
+        const endpointSelect = document.getElementById('endpoint-select');
+        const runAllBtn = document.getElementById('run-all-btn');
+        const clearResultsBtn = document.getElementById('clear-results-btn');
+        const testGrid = document.getElementById('test-grid');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+
+        // 이벤트 리스너
+        endpointSelect.addEventListener('change', (e) => {
+            currentEndpoint = e.target.value;
+            renderTestCases();
+        });
+
+        runAllBtn.addEventListener('click', runAllTests);
+        clearResultsBtn.addEventListener('click', clearResults);
+
+        // 테스트 케이스 렌더링
+        function renderTestCases() {
+            testGrid.innerHTML = '';
+            
+            testCases.testCases.forEach(testCase => {
+                const testElement = createTestCaseElement(testCase);
+                testGrid.appendChild(testElement);
+            });
+
+            updateSummary();
+        }
+
+        // 개별 테스트 케이스 요소 생성
+        function createTestCaseElement(testCase) {
+            const div = document.createElement('div');
+            div.className = 'test-case';
+            div.id = `test-${testCase.id}`;
+
+            const endpoint = testCase.endpoints[currentEndpoint];
+            const result = testResults[testCase.id];
+
+            div.innerHTML = `
+                <div class="test-header">
+                    <div>
+                        <div class="test-title">${testCase.name}</div>
+                        <div class="test-id">${testCase.id}</div>
+                    </div>
+                    <button class="run-single" onclick="runSingleTest('${testCase.id}')" ${isRunning ? 'disabled' : ''}>
+                        실행
+                    </button>
+                </div>
+                <div class="test-body">
+                    <div class="test-info">
+                        <span class="method ${testCase.method}">${testCase.method}</span>
+                        <div class="endpoint">${endpoint}</div>
+                    </div>
+                    ${result ? createResultElement(result) : '<div class="test-result result-pending">대기 중...</div>'}
+                </div>
+            `;
+
+            return div;
+        }
+
+        // 결과 요소 생성
+        function createResultElement(result) {
+            const statusClass = result.success ? 'result-success' : 
+                               result.error ? 'result-error' : 'result-failure';
+            
+            const statusText = result.success ? '✅ 성공' : 
+                              result.error ? '❌ 오류' : '❌ 실패';
+
+            let details = '';
+            if (result.response) {
+                details = `
+                    <div class="response-details">
+상태 코드: ${result.status}
+응답 시간: ${result.responseTime}ms
+응답 데이터:
+${JSON.stringify(result.response, null, 2)}
+                    </div>
+                `;
+            } else if (result.error) {
+                details = `
+                    <div class="response-details">
+오류: ${result.errorMessage}
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="test-result ${statusClass}">
+                    ${statusText}
+                    ${details}
+                </div>
+            `;
+        }
+
+        // 단일 테스트 실행
+        async function runSingleTest(testId) {
+            const testCase = testCases.testCases.find(tc => tc.id === testId);
+            if (!testCase) return;
+
+            const testElement = document.getElementById(`test-${testId}`);
+            const resultContainer = testElement.querySelector('.test-result');
+            
+            resultContainer.className = 'test-result result-pending';
+            resultContainer.innerHTML = '🔄 실행 중...';
+
+            try {
+                const result = await executeTest(testCase);
+                testResults[testId] = result;
+                
+                // 결과 업데이트
+                const newResultElement = createResultElement(result);
+                testElement.querySelector('.test-body').innerHTML = `
+                    <div class="test-info">
+                        <span class="method ${testCase.method}">${testCase.method}</span>
+                        <div class="endpoint">${testCase.endpoints[currentEndpoint]}</div>
+                    </div>
+                    ${newResultElement}
+                `;
+                
+                updateSummary();
+            } catch (error) {
+                testResults[testId] = {
+                    success: false,
+                    error: true,
+                    errorMessage: error.message
+                };
+                
+                const newResultElement = createResultElement(testResults[testId]);
+                testElement.querySelector('.test-body').innerHTML = `
+                    <div class="test-info">
+                        <span class="method ${testCase.method}">${testCase.method}</span>
+                        <div class="endpoint">${testCase.endpoints[currentEndpoint]}</div>
+                    </div>
+                    ${newResultElement}
+                `;
+                
+                updateSummary();
+            }
+        }
+
+        // 모든 테스트 실행
+        async function runAllTests() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            runAllBtn.disabled = true;
+            progressContainer.style.display = 'block';
+            
+            const buttons = document.querySelectorAll('.run-single');
+            buttons.forEach(btn => btn.disabled = true);
+
+            const totalTests = testCases.testCases.length;
+            let completedTests = 0;
+
+            for (const testCase of testCases.testCases) {
+                await runSingleTest(testCase.id);
+                completedTests++;
+                
+                const progress = (completedTests / totalTests) * 100;
+                progressBar.style.width = `${progress}%`;
+                
+                // 테스트 간 간격
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            isRunning = false;
+            runAllBtn.disabled = false;
+            progressContainer.style.display = 'none';
+            
+            buttons.forEach(btn => btn.disabled = false);
+        }
+
+        // 테스트 실행 함수
+        async function executeTest(testCase) {
+            const startTime = Date.now();
+            const endpoint = testCase.endpoints[currentEndpoint];
+            
+            const options = {
+                method: testCase.method,
+                headers: testCase.headers || {}
+            };
+
+            if (testCase.body && testCase.method !== 'GET') {
+                if (typeof testCase.body === 'string') {
+                    options.body = testCase.body;
+                } else {
+                    options.body = JSON.stringify(testCase.body);
+                }
+            }
+
+            try {
+                const response = await fetch(endpoint, options);
+                const responseTime = Date.now() - startTime;
+                
+                let responseData;
+                try {
+                    responseData = await response.json();
+                } catch {
+                    responseData = await response.text();
+                }
+
+                const success = testCase.expectedStatus.includes(response.status);
+                
+                return {
+                    success,
+                    status: response.status,
+                    response: responseData,
+                    responseTime,
+                    error: false
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: true,
+                    errorMessage: error.message,
+                    responseTime: Date.now() - startTime
+                };
+            }
+        }
+
+        // 결과 초기화
+        function clearResults() {
+            testResults = {};
+            renderTestCases();
+        }
+
+        // 요약 정보 업데이트
+        function updateSummary() {
+            const total = testCases.testCases.length;
+            const results = Object.values(testResults);
+            const passed = results.filter(r => r.success).length;
+            const failed = results.filter(r => !r.success && !r.error).length;
+            const errors = results.filter(r => r.error).length;
+
+            document.getElementById('total-tests').textContent = total;
+            document.getElementById('passed-tests').textContent = passed;
+            document.getElementById('failed-tests').textContent = failed;
+            document.getElementById('error-tests').textContent = errors;
+        }
+
+        // 초기 렌더링
+        renderTestCases();
+    </script>
+</body>
+</html>

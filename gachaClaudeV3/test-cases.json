@@ -1,0 +1,283 @@
+{
+  "testCases": [
+    {
+      "id": "TC001",
+      "name": "장치 등록 - 성공 케이스",
+      "type": "success",
+      "method": "POST",
+      "endpoints": {
+        "gachaClaudeV3": "http://localhost:3000/api/devices/register",
+        "gachaGeminiV3": "http://localhost:3000/devices/register",
+        "gachaGptV3": "http://localhost:3000/api/devices/register"
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "hardwareId": "HW001",
+        "tenantId": "TENANT001",
+        "ipAddress": "192.168.1.100",
+        "systemInfo": {
+          "os": "linux",
+          "arch": "arm64",
+          "mac": "aa:bb:cc:dd:ee:ff"
+        }
+      },
+      "expectedStatus": [200, 201],
+      "expectedResponse": {
+        "status": "success",
+        "message": "등록 요청이 저장되었습니다"
+      }
+    },
+    {
+      "id": "TC002",
+      "name": "장치 등록 - 필수 필드 누락 (hardwareId)",
+      "type": "failure",
+      "method": "POST",
+      "endpoints": {
+        "gachaClaudeV3": "http://localhost:3000/api/devices/register",
+        "gachaGeminiV3": "http://localhost:3000/devices/register",
+        "gachaGptV3": "http://localhost:3000/api/devices/register"
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "tenantId": "TENANT001",
+        "ipAddress": "192.168.1.100",
+        "systemInfo": {
+          "os": "linux",
+          "arch": "arm64",
+          "mac": "aa:bb:cc:dd:ee:ff"
+        }
+      },
+      "expectedStatus": [400],
+      "expectedResponse": {
+        "statusCode": 400
+      }
+    },
+    {
+      "id": "TC003",
+      "name": "장치 등록 - 잘못된 IP 주소",
+      "type": "failure",
+      "method": "POST",
+      "endpoints": {
+        "gachaClaudeV3": "http://localhost:3000/api/devices/register",
+        "gachaGeminiV3": "http://localhost:3000/devices/register",
+        "gachaGptV3": "http://localhost:3000/api/devices/register"
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "hardwareId": "HW002",
+        "tenantId": "TENANT001",
+        "ipAddress": "invalid-ip",
+        "systemInfo": {
+          "os": "linux",
+          "arch": "arm64",
+          "mac": "aa:bb:cc:dd:ee:ff"
+        }
+      },
+      "expectedStatus": [400],
+      "expectedResponse": {
+        "statusCode": 400
+      }
+    },
+    {
+      "id": "TC004",
+      "name": "장치 등록 - 중복 등록",
+      "type": "failure",
+      "method": "POST",
+      "endpoints": {
+        "gachaClaudeV3": "http://localhost:3000/api/devices/register",
+        "gachaGeminiV3": "http://localhost:3000/devices/register",
+        "gachaGptV3": "http://localhost:3000/api/devices/register"
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "hardwareId": "HW001",
+        "tenantId": "TENANT001",
+        "ipAddress": "192.168.1.101",
+        "systemInfo": {
+          "os": "linux",
+          "arch": "arm64",
+          "mac": "bb:cc:dd:ee:ff:aa"
+        }
+      },
+      "expectedStatus": [409],
+      "expectedResponse": {
+        "statusCode": 409
+      }
+    },
+    {
+      "id": "TC005",
+      "name": "장치 상태 조회 - 성공 케이스 (pending)",
+      "type": "success",
+      "method": "GET",
+      "endpoints": {
+        "gachaClaudeV3": "http://localhost:3000/api/devices/status/HW001?tenantId=TENANT001",
+        "gachaGeminiV3": "http://localhost:3000/devices/status/HW001",
+        "gachaGptV3": "http://localhost:3000/api/devices/status/HW001"
+      },
+      "headers": {
+        "x-tenant-id": "TENANT001"
+      },
+      "expectedStatus": [200],
+      "expectedResponse": {
+        "status": "success",
+        "message": "승인 대기 중"
+      }
+    },
+    {
+      "id": "TC006",
+      "name": "장치 상태 조회 - 존재하지 않는 장치",
+      "type": "failure",
+      "method": "GET",
+      "endpoints": {
+        "gachaClaudeV3": "http://localhost:3000/api/devices/status/NONEXISTENT?tenantId=TENANT001",
+        "gachaGeminiV3": "http://localhost:3000/devices/status/NONEXISTENT",
+        "gachaGptV3": "http://localhost:3000/api/devices/status/NONEXISTENT"
+      },
+      "headers": {
+        "x-tenant-id": "TENANT001"
+      },
+      "expectedStatus": [404],
+      "expectedResponse": {
+        "statusCode": 404
+      }
+    },
+    {
+      "id": "TC007",
+      "name": "장치 승인 - 인증 없이 접근",
+      "type": "failure",
+      "method": "PUT",
+      "endpoints": {
+        "gachaClaudeV3": "http://localhost:3000/api/devices/device123/approve",
+        "gachaGeminiV3": "http://localhost:3000/devices/HW001/approve",
+        "gachaGptV3": "http://localhost:3000/api/devices/device123/approve"
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {},
+      "expectedStatus": [401],
+      "expectedResponse": {
+        "statusCode": 401
+      }
+    },
+    {
+      "id": "TC008",
+      "name": "장치 승인 - 잘못된 JWT 토큰",
+      "type": "failure",
+      "method": "PUT",
+      "endpoints": {
+        "gachaClaudeV3": "http://localhost:3000/api/devices/device123/approve",
+        "gachaGeminiV3": "http://localhost:3000/devices/HW001/approve",
+        "gachaGptV3": "http://localhost:3000/api/devices/device123/approve"
+      },
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer invalid-token"
+      },
+      "body": {},
+      "expectedStatus": [401],
+      "expectedResponse": {
+        "statusCode": 401
+      }
+    },
+    {
+      "id": "TC009",
+      "name": "장치 거부 - 인증 없이 접근",
+      "type": "failure",
+      "method": "PUT",
+      "endpoints": {
+        "gachaClaudeV3": "http://localhost:3000/api/devices/device123/reject",
+        "gachaGeminiV3": "http://localhost:3000/devices/HW001/reject",
+        "gachaGptV3": "http://localhost:3000/api/devices/device123/reject"
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "reason": "테스트 거부"
+      },
+      "expectedStatus": [401],
+      "expectedResponse": {
+        "statusCode": 401
+      }
+    },
+    {
+      "id": "TC010",
+      "name": "장치 등록 - systemInfo 필드 누락",
+      "type": "failure",
+      "method": "POST",
+      "endpoints": {
+        "gachaClaudeV3": "http://localhost:3000/api/devices/register",
+        "gachaGeminiV3": "http://localhost:3000/devices/register",
+        "gachaGptV3": "http://localhost:3000/api/devices/register"
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "hardwareId": "HW003",
+        "tenantId": "TENANT001",
+        "ipAddress": "192.168.1.102"
+      },
+      "expectedStatus": [400],
+      "expectedResponse": {
+        "statusCode": 400
+      }
+    },
+    {
+      "id": "TC011",
+      "name": "장치 등록 - 빈 문자열 hardwareId",
+      "type": "failure",
+      "method": "POST",
+      "endpoints": {
+        "gachaClaudeV3": "http://localhost:3000/api/devices/register",
+        "gachaGeminiV3": "http://localhost:3000/devices/register",
+        "gachaGptV3": "http://localhost:3000/api/devices/register"
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "hardwareId": "",
+        "tenantId": "TENANT001",
+        "ipAddress": "192.168.1.103",
+        "systemInfo": {
+          "os": "linux",
+          "arch": "arm64",
+          "mac": "cc:dd:ee:ff:aa:bb"
+        }
+      },
+      "expectedStatus": [400],
+      "expectedResponse": {
+        "statusCode": 400
+      }
+    },
+    {
+      "id": "TC012",
+      "name": "장치 등록 - 잘못된 JSON 형식",
+      "type": "failure",
+      "method": "POST",
+      "endpoints": {
+        "gachaClaudeV3": "http://localhost:3000/api/devices/register",
+        "gachaGeminiV3": "http://localhost:3000/devices/register",
+        "gachaGptV3": "http://localhost:3000/api/devices/register"
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": "invalid-json",
+      "expectedStatus": [400],
+      "expectedResponse": {
+        "statusCode": 400
+      }
+    }
+  ]
+}
