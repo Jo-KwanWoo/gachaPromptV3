@@ -20,8 +20,8 @@ export class DynamoDbService implements DbInterface {
   }
 
   async getDevice(hardwareId: string, tenantId: string): Promise<DeviceEntity | null> {
-    const PK = TENANT#;
-    const SK = DEVICE#;
+    const PK = `TENANT#${tenantId}`;
+    const SK = `DEVICE#${hardwareId}`;
     const command = new GetItemCommand({
       TableName: this.tableName,
       Key: marshall({ PK, SK }),
