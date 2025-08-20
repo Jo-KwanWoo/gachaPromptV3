@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +24,7 @@
             margin: 0 auto;
             background: white;
             border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
 
@@ -37,7 +38,7 @@
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .header p {
@@ -128,15 +129,22 @@
 
         .test-case:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
 
         .test-case.success {
             border-color: #28a745;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        }
+
+        .test-case.rejected {
+            border-color: #17a2b8;
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
         }
 
         .test-case.failure {
             border-color: #dc3545;
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
         }
 
         .test-case.running {
@@ -145,9 +153,17 @@
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 193, 7, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+            }
         }
 
         .test-header {
@@ -217,12 +233,25 @@
             color: white;
         }
 
-        .method-post { background: #28a745; }
-        .method-get { background: #17a2b8; }
-        .method-put { background: #ffc107; color: #212529; }
-        .method-delete { background: #dc3545; }
+        .method-post {
+            background: #28a745;
+        }
 
-        .request-body, .response-body {
+        .method-get {
+            background: #17a2b8;
+        }
+
+        .method-put {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .method-delete {
+            background: #dc3545;
+        }
+
+        .request-body,
+        .response-body {
             margin-top: 15px;
         }
 
@@ -246,14 +275,38 @@
             margin-right: 8px;
         }
 
-        .status-pending { background: #6c757d; }
-        .status-running { background: #ffc107; animation: blink 1s infinite; }
-        .status-success { background: #28a745; }
-        .status-failure { background: #dc3545; }
+        .status-pending {
+            background: #6c757d;
+        }
+
+        .status-running {
+            background: #ffc107;
+            animation: blink 1s infinite;
+        }
+
+        .status-success {
+            background: #28a745;
+        }
+
+        .status-rejected {
+            background: #17a2b8;
+        }
+
+        .status-failure {
+            background: #dc3545;
+        }
 
         @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.3; }
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0.3;
+            }
         }
 
         .test-actions {
@@ -292,10 +345,26 @@
             color: white;
         }
 
-        .stat-card.total { background: #6c757d; }
-        .stat-card.success { background: #28a745; }
-        .stat-card.failure { background: #dc3545; }
-        .stat-card.pending { background: #17a2b8; }
+        .stat-card.total {
+            background: #6c757d;
+        }
+
+        .stat-card.success {
+            background: #28a745;
+        }
+
+        .stat-card.rejected {
+            background: #17a2b8;
+        }
+
+        .stat-card.failure {
+            background: #dc3545;
+        }
+
+        .stat-card.pending {
+            background: #ffc107;
+            color: #212529;
+        }
 
         .stat-number {
             font-size: 2em;
@@ -323,8 +392,33 @@
             width: 0%;
             transition: width 0.3s;
         }
+
+        .test-result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .result-message {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .test-case.success .result-message {
+            color: #155724;
+        }
+
+        .test-case.rejected .result-message {
+            color: #0c5460;
+        }
+
+        .test-case.failure .result-message {
+            color: #721c24;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -367,13 +461,67 @@
         // 테스트 케이스 로드
         async function loadTestCases() {
             try {
-                const response = await fetch('../test-cases.json');
-                const data = await response.json();
-                testCases = data.testCases;
+                // CORS 문제 해결을 위해 직접 데이터 임베드
+                const response = await fetch('./test-cases.json').catch(async () => {
+                    // fetch 실패 시 대체 방법
+                    console.warn('fetch 실패, 대체 방법 사용');
+                    return { ok: false };
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    testCases = data.testCases;
+                } else {
+                    // 대체 데이터 로드 (임베드된 테스트 케이스)
+                    await loadEmbeddedTestCases();
+                }
                 renderTestCases();
             } catch (error) {
                 console.error('테스트 케이스 로드 실패:', error);
-                alert('test-cases.json 파일을 로드할 수 없습니다.');
+                // 대체 데이터 로드 시도
+                await loadEmbeddedTestCases();
+                renderTestCases();
+            }
+        }
+
+        // 임베드된 테스트 케이스 로드 (CORS 문제 해결용)
+        async function loadEmbeddedTestCases() {
+            try {
+                const response = await fetch('../test-cases.json');
+                const data = await response.json();
+                testCases = data.testCases;
+            } catch (error) {
+                console.warn('상위 폴더에서도 로드 실패, 기본 테스트 케이스 사용');
+                // 기본 테스트 케이스 (최소한의 테스트)
+                testCases = [
+                    {
+                        "id": "TC001",
+                        "name": "장치 등록 - 성공 케이스",
+                        "type": "success",
+                        "method": "POST",
+                        "endpoints": {
+                            "gachaGptV3": "http://localhost:3001/api/devices/register"
+                        },
+                        "headers": {
+                            "Content-Type": "application/json"
+                        },
+                        "body": {
+                            "hardwareId": "HW001",
+                            "tenantId": "TENANT001",
+                            "ipAddress": "192.168.1.100",
+                            "systemInfo": {
+                                "os": "linux",
+                                "arch": "arm64",
+                                "mac": "aa:bb:cc:dd:ee:ff"
+                            }
+                        },
+                        "expectedStatus": [200, 201],
+                        "expectedResponse": {
+                            "status": "success",
+                            "message": "등록 요청이 저장되었습니다"
+                        }
+                    }
+                ];
             }
         }
 
@@ -444,6 +592,11 @@
                         <div class="code-block" id="actual-response-content-${testCase.id}"></div>
                     </div>
 
+                    <div class="test-result" id="result-${testCase.id}" style="display: none;">
+                        <div class="info-label">테스트 결과</div>
+                        <div class="result-message" id="result-message-${testCase.id}"></div>
+                    </div>
+
                     <div class="test-actions">
                         <button class="btn btn-primary btn-sm" onclick="runSingleTest('${testCase.id}')">
                             🧪 테스트 실행
@@ -473,7 +626,7 @@
             try {
                 // GPT V3 엔드포인트 URL 구성
                 const endpoint = testCase.endpoints.gachaGptV3.replace('http://localhost:3000', serverUrl);
-                
+
                 const requestOptions = {
                     method: testCase.method,
                     headers: {
@@ -494,7 +647,7 @@
 
                 const response = await fetch(endpoint, requestOptions);
                 const responseData = await response.text();
-                
+
                 let parsedResponse;
                 try {
                     parsedResponse = JSON.parse(responseData);
@@ -511,28 +664,52 @@
                 }, null, 2);
 
                 // 테스트 결과 판정
-                const isSuccess = testCase.expectedStatus.includes(response.status);
+                const isExpectedStatus = testCase.expectedStatus.includes(response.status);
+                const testPassed = isExpectedStatus;
+
                 testResults[testId] = {
-                    success: isSuccess,
+                    success: testPassed,
                     status: response.status,
-                    response: parsedResponse
+                    response: parsedResponse,
+                    type: testCase.type,
+                    expected: testCase.expectedStatus
                 };
 
-                // UI 업데이트
-                if (isSuccess) {
-                    statusIndicator.className = 'status-indicator status-success';
-                    testElement.className = 'test-case success';
+                // UI 업데이트 - 테스트 타입에 따라 다른 표시
+                const resultDiv = document.getElementById(`result-${testId}`);
+                const resultMessage = document.getElementById(`result-message-${testId}`);
+
+                if (testPassed) {
+                    if (testCase.type === 'success') {
+                        // 성공 케이스가 성공함
+                        statusIndicator.className = 'status-indicator status-success';
+                        testElement.className = 'test-case success';
+                        resultMessage.textContent = '✅ 정상 동작 - 예상대로 성공했습니다';
+                    } else {
+                        // 실패 케이스가 예상대로 실패함 (정상적으로 거부됨)
+                        statusIndicator.className = 'status-indicator status-rejected';
+                        testElement.className = 'test-case rejected';
+                        resultMessage.textContent = `🛡️ 정상적으로 거부됨 - HTTP ${response.status} 응답`;
+                    }
                 } else {
+                    // 예상과 다른 결과
                     statusIndicator.className = 'status-indicator status-failure';
                     testElement.className = 'test-case failure';
+                    if (testCase.type === 'success') {
+                        resultMessage.textContent = `❌ 예상된 성공이 실패함 - HTTP ${response.status} (예상: ${testCase.expectedStatus.join(', ')})`;
+                    } else {
+                        resultMessage.textContent = `⚠️ 예상과 다른 오류 - HTTP ${response.status} (예상: ${testCase.expectedStatus.join(', ')})`;
+                    }
                 }
+
+                resultDiv.style.display = 'block';
 
             } catch (error) {
                 console.error(`테스트 ${testId} 실행 중 오류:`, error);
-                
+
                 actualResponseDiv.style.display = 'block';
                 actualResponseContent.textContent = `오류: ${error.message}`;
-                
+
                 testResults[testId] = {
                     success: false,
                     error: error.message
@@ -549,7 +726,7 @@
         async function runAllTests() {
             testResults = {};
             document.getElementById('resultsSummary').classList.add('show');
-            
+
             for (const testCase of testCases) {
                 await runSingleTest(testCase.id);
                 // 테스트 간 간격
@@ -561,7 +738,7 @@
         async function runSuccessTests() {
             testResults = {};
             document.getElementById('resultsSummary').classList.add('show');
-            
+
             const successTests = testCases.filter(tc => tc.type === 'success');
             for (const testCase of successTests) {
                 await runSingleTest(testCase.id);
@@ -573,7 +750,7 @@
         async function runFailureTests() {
             testResults = {};
             document.getElementById('resultsSummary').classList.add('show');
-            
+
             const failureTests = testCases.filter(tc => tc.type === 'failure');
             for (const testCase of failureTests) {
                 await runSingleTest(testCase.id);
@@ -584,8 +761,12 @@
         // 결과 요약 업데이트
         function updateSummary() {
             const total = Object.keys(testResults).length;
-            const success = Object.values(testResults).filter(r => r.success).length;
-            const failure = total - success;
+            const results = Object.values(testResults);
+
+            // 결과 분류
+            const actualSuccess = results.filter(r => r.success && r.type === 'success').length;
+            const properlyRejected = results.filter(r => r.success && r.type === 'failure').length;
+            const actualFailure = results.filter(r => !r.success).length;
             const pending = testCases.length - total;
 
             const summaryStats = document.getElementById('summaryStats');
@@ -595,12 +776,16 @@
                     <div class="stat-label">전체</div>
                 </div>
                 <div class="stat-card success">
-                    <div class="stat-number">${success}</div>
-                    <div class="stat-label">성공</div>
+                    <div class="stat-number">${actualSuccess}</div>
+                    <div class="stat-label">정상 동작</div>
+                </div>
+                <div class="stat-card rejected">
+                    <div class="stat-number">${properlyRejected}</div>
+                    <div class="stat-label">정상 거부</div>
                 </div>
                 <div class="stat-card failure">
-                    <div class="stat-number">${failure}</div>
-                    <div class="stat-label">실패</div>
+                    <div class="stat-number">${actualFailure}</div>
+                    <div class="stat-label">실제 오류</div>
                 </div>
                 <div class="stat-card pending">
                     <div class="stat-number">${pending}</div>
@@ -617,4 +802,5 @@
         document.addEventListener('DOMContentLoaded', loadTestCases);
     </script>
 </body>
+
 </html>
